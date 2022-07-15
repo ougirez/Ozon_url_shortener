@@ -1,10 +1,12 @@
 package postgres
 
 import (
+	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"math/rand"
 	"os"
 	"shorty/base63"
@@ -16,11 +18,11 @@ const (
 	PORT = "5432"
 )
 
-type PostgresHandler struct {
+type PostgresInstance struct {
 	db *gorm.DB
 }
 
-func (p *PostgresHandler) Setup() {
+func (p *PostgresInstance) Setup() {
 	dbUser, dbPassword, dbName :=
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
@@ -37,22 +39,21 @@ func (p *PostgresHandler) Setup() {
 	}
 	err = p.db.AutoMigrate(&model.Shorty{})
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
-func (p *PostgresHandler) Exists(id int64) bool {
+func (p *PostgresInstance) Exists(id int64) bool {
 	var exists bool
 	p.db.Where("id = ?", id).Find(&exists)
 	return exists
 }
 
-func (p *PostgresHandler) Save(url string) (string, error) {
+func (p *PostgresInstance) Save(url string) (string, error) {
 	id := rand.Int63()
 	for p.Exists(id) {
 		id = rand.Int63()
 	}
-	fmt.Println(id)
 	shortUrl := base63.Encode(id)
 	var shorty = model.Shorty{
 		ID:       id,
@@ -61,16 +62,16 @@ func (p *PostgresHandler) Save(url string) (string, error) {
 	}
 	err := p.db.Create(&shorty).Error
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	return "http://localhost:3000/" + shortUrl, err
 }
 
-func (p *PostgresHandler) Get(shortUrl string) (string, error) {
+func (p *PostgresInstance) Get(shortUrl string) (string, error) {
 	var shorty model.Shorty
 	tx := p.db.Where("short_url = ?", shortUrl).First(&shorty)
 	if tx.Error != nil {
-		return "", tx.Error
+		return "", errors.New("shorty not found")
 	}
 	return shorty.URL, nil
 }
