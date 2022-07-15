@@ -1,8 +1,8 @@
 package base63
 
 const (
-	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
-	length   = int64(len(alphabet))
+	ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
+	length   = int64(len(ALPHABET))
 )
 
 // Encode переводит id в base63
@@ -13,10 +13,10 @@ func Encode(id int64) string {
 	res := make([]byte, 10)
 	for i := 0; i < 10; i++ {
 		if id > 0 {
-			res[i] = alphabet[id%length]
+			res[i] = ALPHABET[id%length]
 			id /= length
 		} else {
-			res[i] = alphabet[0]
+			res[i] = ALPHABET[0]
 		}
 	}
 	return string(res)
