@@ -44,9 +44,9 @@ func (p *PostgresInstance) Setup() {
 }
 
 func (p *PostgresInstance) Exists(id int64) bool {
-	var exists bool
-	p.db.Where("id = ?", id).Find(&exists)
-	return exists
+	var shorty model.Shorty
+	r := p.db.Where("id = ?", id).Find(&shorty)
+	return r.RowsAffected > 0
 }
 
 func (p *PostgresInstance) Save(url string) (string, error) {
